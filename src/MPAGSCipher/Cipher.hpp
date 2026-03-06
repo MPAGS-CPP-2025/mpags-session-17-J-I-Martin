@@ -4,6 +4,7 @@
 #include "CipherMode.hpp"
 #include "CipherType.hpp"
 
+#include <stdexcept>
 #include <string>
 
 /**
@@ -16,6 +17,8 @@
  * \brief Defines the interface for a cipher
  *
  * A purely abstract base class that defines the interface for a cipher
+ * 
+ * \exception InvalidKey if the key provided to the cipher is invalid
  *
  * It can be used as follows:
  * \code{.cpp}
@@ -53,6 +56,14 @@ class Cipher {
     Cipher& operator=(Cipher&& rhs) = default;
     /// Make the default destructor virtual
     virtual ~Cipher() = default;
+};
+
+/**
+ * \brief Custom exception for invalid key in the Vigenere cipher
+ */
+class InvalidKey : public std::invalid_argument {
+  public:
+    InvalidKey(const std::string& msg) : std::invalid_argument{msg} {}
 };
 
 #endif
