@@ -1,3 +1,4 @@
+#include "Cipher.hpp"
 #include "CipherFactory.hpp"
 #include "CipherMode.hpp"
 #include "CipherType.hpp"
@@ -19,11 +20,17 @@ int main(int argc, char* argv[])
     ProgramSettings settings;
 
     // Process command line arguments
-    const bool cmdLineStatus{processCommandLine(cmdLineArgs, settings)};
-
-    // Any failure in the argument processing means we can't continue
-    // Use a non-zero return value to indicate failure
-    if (!cmdLineStatus) {
+    try {
+        processCommandLine(cmdLineArgs, settings);
+    } catch (const MissingArgument& e) {
+        std::cerr << "[error] Missing argument: " << e.what() << std::endl;
+        return 1;
+    } catch (const UnknownArgument& e) {
+        std::cerr << "[error] Unknown argument:  " << e.what() << std::endl;
+        return 1;
+    } catch (const InconsistentCipherNumber& e) {
+        std::cerr << "[error] Inconsistent cipher number: " << e.what()
+                  << std::endl;
         return 1;
     }
 
@@ -94,8 +101,13 @@ int main(int argc, char* argv[])
     std::size_t nCiphers{settings.cipherType.size()};
     ciphers.reserve(nCiphers);
     for (std::size_t iCipher{0}; iCipher < nCiphers; ++iCipher) {
-        ciphers.push_back(CipherFactory::makeCipher(
-            settings.cipherType[iCipher], settings.cipherKey[iCipher]));
+        try {
+            ciphers.push_back(CipherFactory::makeCipher(
+                settings.cipherType[iCipher], settings.cipherKey[iCipher]));
+        } catch (const InvalidKey& e) {
+            std::cerr << "[error] invalid key: " << e.what() << std::endl;
+            return 1;
+        }
 
         // Check that the cipher was constructed successfully
         if (!ciphers.back()) {
